@@ -1,5 +1,4 @@
 # Table of contents
 
-## Network
-
-* [OVN + FCOS](README.md)
+* [Network](README.md)
+  * [OVN + FCOS](<README (1).md>)
