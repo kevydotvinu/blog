@@ -6,7 +6,35 @@ description: The configuration of standalone OVN on FCOS
 
 ## Installation
 
-```
+```bash
 sudo rpm-ostree install --apply-live ovn ovn-host ovn-central openvswitch
 ```
 
+### Configure VM
+
+Add the below to the `virt-install` command.
+
+```bash
+--network bridge=br-int,virtualport_type=openvswitch
+```
+
+### Configure interface in OVN
+
+<pre class="language-bash"><code class="lang-bash">IFACE=$(sudo virsh -q domiflist &#x3C;VM_NAME> | awk '{print $1}')
+IFACE_ID=$(sudo ovs-vsctl get interface {IFACE} external_ids:iface-id | sed s/\"//g)
+<strong>sudo ovn-nbctl list Logical_Switch
+</strong><strong>sudo ovn-nbctl lsp-add &#x3C;SWITCH_NAME> ${IFACE_ID}
+</strong>MAC=$(sudo ovs-vsctl get interface vnet0 external_ids:attached-mac | sed s/\"//g)
+sudo ovn-nbctl lsp-set-addresses ${IFACE_ID} ${MAC}
+</code></pre>
+
+### Configure DHCP in the logical switch
+
+```bash
+sudo ovn-nbctl dhcp-options-create 192.168.130.0/24
+DHCP_CIDR_UUID=$(sudo ovn-nbctl --bare --columns=_uuid find dhcp_options cidr="192.168.130.0/24")
+sudo ovn-nbctl dhcp-options-set-options ${DHCP_CIDR_UUID} lease_time=3600 router=192.168.130.1 server_id=192.168.130.1 server_mac=52:54:00:00:00:01
+IFACE=$(sudo virsh -q domiflist <VM_NAME> | awk '{print $1}')
+IFACE_ID=$(sudo ovs-vsctl get interface {IFACE} external_ids:iface-id | sed s/\"//g)
+sudo ovn-nbctl lsp-set-dhcpv4-options ${IFACE_ID} ${DHCP_CIDR_UUID}
+```
