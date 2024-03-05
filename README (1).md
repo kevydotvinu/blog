@@ -20,13 +20,14 @@ Add the below to the `virt-install` command.
 
 ### Configure interface in OVN
 
-<pre class="language-bash"><code class="lang-bash">IFACE=$(sudo virsh -q domiflist &#x3C;VM_NAME> | awk '{print $1}')
+```bash
+IFACE=$(sudo virsh -q domiflist <VM_NAME> | awk '{print $1}')
 IFACE_ID=$(sudo ovs-vsctl get interface {IFACE} external_ids:iface-id | sed s/\"//g)
-<strong>sudo ovn-nbctl list Logical_Switch
-</strong><strong>sudo ovn-nbctl lsp-add &#x3C;SWITCH_NAME> ${IFACE_ID}
-</strong>MAC=$(sudo ovs-vsctl get interface vnet0 external_ids:attached-mac | sed s/\"//g)
+sudo ovn-nbctl list Logical_Switch
+sudo ovn-nbctl lsp-add <SWITCH_NAME> ${IFACE_ID}
+MAC=$(sudo ovs-vsctl get interface vnet0 external_ids:attached-mac | sed s/\"//g)
 sudo ovn-nbctl lsp-set-addresses ${IFACE_ID} ${MAC}
-</code></pre>
+```
 
 ### Configure DHCP in the logical switch
 
