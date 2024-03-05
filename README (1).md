@@ -39,3 +39,14 @@ IFACE=$(sudo virsh -q domiflist <VM_NAME> | awk '{print $1}')
 IFACE_ID=$(sudo ovs-vsctl get interface {IFACE} external_ids:iface-id | sed s/\"//g)
 sudo ovn-nbctl lsp-set-dhcpv4-options ${IFACE_ID} ${DHCP_CIDR_UUID}
 ```
+
+### Configure management port
+
+```bash
+sudo ovs-vsctl add-port br-int onp-mp0 -- set interface onp-mp0 type=internal
+sudo ovs-vsctl set Interface onp-mp0 external_ids:iface-id=onp-mp0
+sudo ovn-nbctl set logical_switch_port onp-mp0 up=true
+MAC=$(ip a s onp-mp0 | grep ether | awk '{print $2}')
+IP=$(ip a s onp-mp0 | grep inet | awk '{print $2}' | cut -d/ -f1)
+sudo ovn-nbctl lsp-set-addresses onp-mp0 "${MAC} ${IP}"
+```
